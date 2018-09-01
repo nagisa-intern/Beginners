@@ -40,8 +40,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
     
     // 画面がタップされた時に呼ばれる関数(tapGestureから)
     @objc func handleTap(_ gestureRecognize: UIGestureRecognizer){
-        let url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/comic/2/thumb.jpeg")
-        putImageInScene(url: url!)
         guard let currentFrame = self.sceneView.session.currentFrame else{
             print("error occured in handleTap")
             return
@@ -50,7 +48,12 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let tappedLocation = gestureRecognize.location(in: sceneView)
         let hitResults = sceneView.hitTest(tappedLocation, options: [:])
         
+        var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0000.jpeg")
+        
+        // 何もタップされていない時
         if hitResults.count == 0 {
+            putImageInScene(url: url!)
+            
             print("当たってへんよ")
             return
         }
@@ -58,9 +61,16 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let result: AnyObject = hitResults[0]
         
         // 子ノード（文字）があったら消す
+        /*
         if result.node!.childNodes.count > 0 {
             result.node!.removeFromParentNode()
         }
+         */
+        
+        result.node!.removeFromParentNode()
+        
+        url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0001.jpeg")
+        putImageInScene(url: url!)
         
         // ちゃうやん、文字に当たったらにせなあかんやん
         print("hitResults.count")
@@ -73,7 +83,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let skScene = SKScene(size: CGSize(width: 640, height: 480))
         skScene.backgroundColor = Style().invisivle // 透明にしても文字とSKSceneとの境界がSceneの色になることに注意
         myLabel.position        = CGPoint(x: skScene.size.width/2, y: skScene.size.height/2)
-        skScene.addChild(myLabel)
+        //skScene.addChild(myLabel)
         let backgroundPlane = SCNPlane(width: 0.64, height: 0.48)
         backgroundPlane.firstMaterial?.diffuse.contents = skScene
         backgroundPlane.firstMaterial?.isDoubleSided    = true
@@ -83,7 +93,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         translation.columns.3.z = 0.000001
         imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
         imageNode.eulerAngles   = SCNVector3(0, 0, 0)
-        
         
         result.node!.addChildNode(imageNode)
         
@@ -105,12 +114,12 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             let texture         = SKTexture(image: img!)
             let imageSpriteNode = SKSpriteNode(texture: texture)
             
-            let skScene = SKScene(size: CGSize(width: 640, height: 480))
+            let skScene = SKScene(size: CGSize(width: 375, height: 526))
             skScene.addChild(imageSpriteNode)
             imageSpriteNode.position = CGPoint(x: skScene.size.width/2, y: skScene.size.height/2)
             imageSpriteNode.size     = skScene.size
             
-            let backgroundPlane = SCNPlane(width: 1.0, height: 0.75)
+            let backgroundPlane = SCNPlane(width: 0.1875, height: 0.263)
             //backgroundPlane.firstMaterial?.diffuse.contents = skScene
             //let material        = SCNMaterial()
             //material.diffuse.contents                       = Style().skyblue
@@ -120,7 +129,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             
             let imageNode = SCNNode(geometry: backgroundPlane)
             var translation = matrix_identity_float4x4
-            translation.columns.3.z = -3
+            translation.columns.3.z = -0.3
             imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
             imageNode.eulerAngles   = SCNVector3(Double.pi, 0, 0)
             
