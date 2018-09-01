@@ -40,7 +40,8 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
     
     // 画面がタップされた時に呼ばれる関数(tapGestureから)
     @objc func handleTap(_ gestureRecognize: UIGestureRecognizer){
-        putImageInScene(url: )
+        let url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/comic/2/thumb.jpeg")
+        putImageInScene(url: url!)
         guard let currentFrame = self.sceneView.session.currentFrame else{
             print("error occured in handleTap")
             return
