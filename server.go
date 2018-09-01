@@ -43,6 +43,9 @@ func (s *Server) Run(addr string) {
 // Routeはベースアプリケーションのroutingを設定します
 func (s *Server) Route() *mux.Router {
 	router := mux.NewRouter()
+
+	comics := &controller.Comics{DB: s.dbx}
+
 	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, "pong")
@@ -59,6 +62,8 @@ func (s *Server) Route() *mux.Router {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/index.html")
 	})
+
+
 
 
 
