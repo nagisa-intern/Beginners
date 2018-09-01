@@ -1,0 +1,9 @@
+.*
+!.git*
+vendor/
+node_modules/
+*.db
+Godeps/_workspace
+!.editorconfig
+/dbconfig.prod.yml
+/cmd/base
