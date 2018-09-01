@@ -13,7 +13,7 @@ type Comics struct {
 }
 
 type Sample struct {
-	Color string `json:"text"`
+	Color string `json:"color"`
 	Title string `json:"title"`
 	Author string `json:author`
 	Summary string `json:summary`
