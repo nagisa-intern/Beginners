@@ -7,23 +7,32 @@ for id in range(1,18):
 	img = cv2.imread("thumb_" + id + ".jpeg")
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-	h = 0
-	s = 0
-	v = 0
+	h = []
+	s = []
+	v = []
 
 	# 全画素にアクセス
 	for y in range(img.shape[0]):
 		for x in range(img.shape[1]):
-			h += img[y,x][0] # 0~180
-			s += img[y,x][1] # 0~255
-			v += img[y,x][2] # 0~255
+			h.append(img[y,x][0]) # 0~180
+			s.append(img[y,x][1]) # 0~255
+			v.append(img[y,x][2]) # 0~255
 
-	pixelLong = img.shape[0] * img.shape[1]
-	h /= pixelLong
-	s /= pixelLong
-	v /= pixelLong
+	#pixelLong = img.shape[0] * img.shape[1]
+	#h /= pixelLong
+	#s /= pixelLong
+	#v /= pixelLong
 
-	print(h,s,v)
+	h = np.array(h)
+	s = np.array(s)
+	v = np.array(v)
+
+	h = np.median(h)
+	s = np.median(s)
+	v = np.median(v)
+
+	print("thumb_" + id + ".jpeg")
+	print("HSVの中央値：[" + str(h) + ", " + str(s) + ", " + str(v) + "]")
 
 	string = ""
 
@@ -50,4 +59,4 @@ for id in range(1,18):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-	print(id + ":" + string)
+	print("色カテゴリ：" + string + "\n")
