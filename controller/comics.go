@@ -13,8 +13,10 @@ type Comics struct {
 }
 
 type Sample struct {
-	Text string `json:"text"`
-	Caption string `json:"caption"`
+	Color string `json:"text"`
+	Title string `json:"title"`
+	Author string `json:author`
+	Summary string `json:summary`
 }
 
 func JSON(w http.ResponseWriter, code int, data interface{}) error {
@@ -29,7 +31,8 @@ func (a *Comics) Get(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Location", "api/comics/"+comicColor)
 
 	comics := []Sample{
-		{Text: comicColor, Caption: "gugaguga"}, {Caption: "hogehoeeee"}}
+		{Color: comicColor, Title: "titleの１だよ", Author: "hogehoge", Summary: "ああああああああああああああああああああああ"},
+		{Color: comicColor, Title: "２", Author: "hogehoge", Summary: "いいいいいいいいいいいいいいいいいい"}}
 
 	return JSON(w, http.StatusOK, comics)
 
