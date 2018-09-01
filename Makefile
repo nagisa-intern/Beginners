@@ -1,4 +1,4 @@
-DB_CONTAINER_NAME:=nagisa-mysql
+DB_CONTAINER_NAME:=beginners-mysql
 DBNAME:=beginners
 ENV:=development
 
