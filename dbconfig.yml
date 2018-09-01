@@ -9,5 +9,5 @@
 # see: http://dsas.blog.klab.org/archives/52191467.html
 development:
   dialect: mysql
-  datasource: root:password@tcp(localhost:3306)/nagisa?parseTime=true&charset=utf8mb4&interpolateParams=true
+  datasource: root:password@tcp(localhost:3306)/beginners?parseTime=true&charset=utf8mb4&interpolateParams=true
   dir: migrations
