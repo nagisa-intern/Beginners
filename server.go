@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 	"github.com/nagisa-intern/Beginners/db"
+	"github.com/nagisa-intern/Beginners/controller"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+
 )
 // Serverはベースアプリケーションのserverを示します
 type Server struct {
@@ -54,13 +56,15 @@ func (s *Server) Route() *mux.Router {
 		fmt.Fprint(w, "dbpong")
 	}).Methods("GET")
 
-
-
-
-
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/index.html")
 	})
+
+
+
+	router.Handle("/api/comics/{color}", handler(comics.Get)).Methods("GET")
+
+
 	router.PathPrefix("/css/").Handler(
 		http.StripPrefix("/css/", http.FileServer(http.Dir("static/css"))))
 	router.PathPrefix("/js/").Handler(

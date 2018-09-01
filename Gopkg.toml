@@ -26,12 +26,12 @@
 
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/VG-Tech-Dojo/treasure2018-group-f"
-
-[[constraint]]
   name = "github.com/go-sql-driver/mysql"
   version = "1.4.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/gddo"
 
 [[constraint]]
   name = "github.com/gorilla/mux"
@@ -40,6 +40,10 @@
 [[constraint]]
   branch = "master"
   name = "github.com/jmoiron/sqlx"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.1"
 
 [prune]
   go-tests = true
