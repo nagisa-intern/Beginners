@@ -30,6 +30,9 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         // 画面タップのレコナイザを定義(タップされたらhandleTapを呼ぶ)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         sceneView.addGestureRecognizer(tapGesture)
+        //
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        sceneView.addGestureRecognizer(panGesture)
         
         // 大きさと座標
         sceneView.snp.makeConstraints{(make) in
@@ -44,6 +47,8 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             print("error occured in handleTap")
             return
         }
+        
+        print("tapped")
         
         let tappedLocation = gestureRecognize.location(in: sceneView)
         let hitResults = sceneView.hitTest(tappedLocation, options: [:])
@@ -102,6 +107,38 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         print(result.node!.childNodes.count)
     }
     
+    
+    @objc func handlePan(_ gestureRecognize: UIPanGestureRecognizer){
+        guard let currentFrame = self.sceneView.session.currentFrame else{
+            print("error occured in handlePan")
+            return
+        }
+        
+        // ドラッグの移動量を取得
+        let move: CGPoint = gestureRecognize.translation(in: view)
+        
+        let tappedLocation = gestureRecognize.location(in: sceneView)
+        let hitResults = sceneView.hitTest(tappedLocation, options: [:])
+        
+        var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0000.jpeg")
+        
+        // PanがNodeに当たってない時
+        if hitResults.count == 0 {
+            print("めくり損ねてる")
+            return
+        }
+        
+        let result: AnyObject = hitResults[0]
+        result.node!.eulerAngles = SCNVector3(Double.pi, Double(move.x/30), 0)
+        
+        print(result.node!.parent)
+        
+        print("move:", move)
+        
+        // 蓄積されるから0にしてリセット
+        //gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
+    }
+    
     // 画像を空間に配置する関数
     func putImageInScene(url: URL) {
         guard let currentFrame = self.sceneView.session.currentFrame else{
@@ -114,13 +151,17 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             let texture         = SKTexture(image: img!)
             let imageSpriteNode = SKSpriteNode(texture: texture)
             
-            let skScene = SKScene(size: CGSize(width: 375, height: 526))
+            let skScene = SKScene(size: CGSize(width: 750, height: 526))
             skScene.addChild(imageSpriteNode)
-            imageSpriteNode.position = CGPoint(x: skScene.size.width/2, y: skScene.size.height/2)
-            imageSpriteNode.size     = skScene.size
+            imageSpriteNode.position = CGPoint(x: skScene.size.width/4, y: skScene.size.height/2)
+            imageSpriteNode.size     = CGSize(width: 375, height: 526)
+            let marginSpriteNode = SKSpriteNode(color: Style().invisivle, size: CGSize(width: 375, height: 526))
+            marginSpriteNode.position = CGPoint(x: skScene.size.width*3/4, y: skScene.size.height/2)
+            skScene.addChild(marginSpriteNode)
             
-            let backgroundPlane = SCNPlane(width: 0.1875, height: 0.263)
-            //backgroundPlane.firstMaterial?.diffuse.contents = skScene
+            skScene.backgroundColor = Style().invisivle // ページめくる動きのためにジオメトリの横幅を画像の２倍にしてて、画像じゃない方は透過してる
+            
+            let backgroundPlane = SCNPlane(width: 0.375, height: 0.263)
             //let material        = SCNMaterial()
             //material.diffuse.contents                       = Style().skyblue
             //backgroundPlane.materials                       = [material]
