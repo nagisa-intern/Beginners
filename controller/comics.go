@@ -73,34 +73,22 @@ func (c *Comics) GetAuthor(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
-func (c *Comics) GetTitleAndAuthor(w http.ResponseWriter, r *http.Request) error {
-	comicColor := mux.Vars(r)["color"]
-	//w.Header().Set("Location", "api/comics/"+comicColor)
+func (c *Comics) Post(w http.ResponseWriter, r *http.Request, comicID int, comment string) error {
+	var comicComment model.ComicComment
 
-	comics, err := model.ComicOne(c.DB, comicColor)
-	if err != nil {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return nil
+	if err := json.NewDecoder(r.Body).Decode(&comicComment); err != nil {
+		return err
 	}
-	return JSON(w, http.StatusOK, struct {
-		Comics []model.Comic `json:"comics"`
-	}{
-		Comics: comics,
-	})
 
-	id := mux.Vars(r)["id"]
-	//w.Header().Set("Location", "api/authors/"+id)
-	idNum, err := strconv.ParseInt(id, 10, 64)
+	comicComment.ComicID = int64(comicID)
+	comicComment.Comment = comment
+	//
+	//result, err := comicComment.Insert(comicComment.ComicID, comicComment.Comment)
+	//if err != nil {
+	//	return err
+	//
+	//}
 
-
-	authors, err := model.AuthorOne(c.DB, idNum)
-	if err != nil {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return nil
-	}
-	return JSON(w, http.StatusOK, struct {
-		Authors []model.Author `json:"authors"`
-	}{
-		Authors: authors,
-	})
+	return JSON(w, http.StatusOK, comicComment)
 }
+

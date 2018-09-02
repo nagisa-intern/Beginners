@@ -2,6 +2,7 @@ package model
 
 import (
 "github.com/jmoiron/sqlx"
+	"database/sql"
 )
 
 type Comic struct {
@@ -25,6 +26,12 @@ type ComicData struct {
 	Page	int64	`json:"page"`
 }
 
+type ComicComment struct {
+	ID	int64 `json:"id"`
+	ComicID int64 `db:"comic_id" json:"comic_id"`
+	Comment string `json:"comment"`
+}
+
 func ComicsAll(dbx *sqlx.DB) (comics []Comic, err error) {
 	if err := dbx.Select(&comics, `select * from comics`); err != nil {
 		return nil, err
@@ -45,6 +52,15 @@ func AuthorOne(dbx *sqlx.DB, id int64) (author []Author, err error) {
 		return nil, err
 	}
 	return author, nil
+}
+
+func (c *ComicComment) Insert(tx *sqlx.Tx) (sql.Result, error) {
+	stmt, err := tx.Prepare(`insert into comic_comment (comic_id, comment) values(?, ?)`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	return stmt.Exec(c.ComicID, c.Comment)
 }
 
 //func (a *Article) Insert(tx *sqlx.Tx) (sql.Result, error) {

@@ -67,8 +67,7 @@ func (s *Server) Route() *mux.Router {
 	router.Handle("/api/comics", handler(comics.GetAll)).Methods("GET")
 	router.Handle("/api/comics/{color}", handler(comics.Get)).Methods("GET")
 	router.Handle("/api/authors/{id}", handler(comics.GetAuthor)).Methods("GET")
-
-
+	//router.Handle("/api/comics/{id}/comment", handler(comics.Post)).Methods("POST")
 	router.PathPrefix("/css/").Handler(
 		http.StripPrefix("/css/", http.FileServer(http.Dir("static/css"))))
 	router.PathPrefix("/js/").Handler(
