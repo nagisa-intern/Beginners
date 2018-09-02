@@ -6,14 +6,16 @@ import (
 "net/http"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	)
+	"github.com/nagisa-intern/Beginners/model"
+	"strconv"
+)
 
 type Comics struct {
 	DB *sqlx.DB
 }
 
 type Sample struct {
-	Color string `json:"text"`
+	Color string `json:"color"`
 	Title string `json:"title"`
 	Author string `json:author`
 	Summary string `json:summary`
@@ -25,16 +27,80 @@ func JSON(w http.ResponseWriter, code int, data interface{}) error {
 }
 
 
-func (a *Comics) Get(w http.ResponseWriter, r *http.Request) error {
+func (c *Comics) Get(w http.ResponseWriter, r *http.Request) error {
+		comicColor := mux.Vars(r)["color"]
+		//w.Header().Set("Location", "api/comics/"+comicColor)
 
+		comics, err := model.ComicOne(c.DB, comicColor)
+		if err != nil {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return nil
+	}
+		return JSON(w, http.StatusOK, struct {
+		Comics []model.Comic `json:"comics"`
+	}{
+		Comics: comics,
+	})
+}
+
+func (c *Comics) GetAll(w http.ResponseWriter, r *http.Request) error {
+	comics, err := model.ComicsAll(c.DB)
+	if err != nil {
+		return err
+	}
+	return JSON(w, http.StatusOK, struct {
+		Comics []model.Comic `json:"articles"`
+	}{
+		Comics: comics,
+	})
+}
+
+func (c *Comics) GetAuthor(w http.ResponseWriter, r *http.Request) error {
+	id := mux.Vars(r)["id"]
+	//w.Header().Set("Location", "api/authors/"+id)
+	idNum, err := strconv.ParseInt(id, 10, 64)
+
+
+	authors, err := model.AuthorOne(c.DB, idNum)
+	if err != nil {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return nil
+	}
+	return JSON(w, http.StatusOK, struct {
+		Authors []model.Author `json:"authors"`
+	}{
+		Authors: authors,
+	})
+}
+
+func (c *Comics) GetTitleAndAuthor(w http.ResponseWriter, r *http.Request) error {
 	comicColor := mux.Vars(r)["color"]
-	w.Header().Set("Location", "api/comics/"+comicColor)
+	//w.Header().Set("Location", "api/comics/"+comicColor)
 
-	comics := []Sample{
-		{Color: comicColor, Title: "titleの１だよ", Author: "hogehoge", Summary: "ああああああああああああああああああああああ"},
-		{Color: comicColor, Title: "２", Author: "hogehoge", Summary: "いいいいいいいいいいいいいいいいいい"}}
+	comics, err := model.ComicOne(c.DB, comicColor)
+	if err != nil {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return nil
+	}
+	return JSON(w, http.StatusOK, struct {
+		Comics []model.Comic `json:"comics"`
+	}{
+		Comics: comics,
+	})
 
-	return JSON(w, http.StatusOK, comics)
+	id := mux.Vars(r)["id"]
+	//w.Header().Set("Location", "api/authors/"+id)
+	idNum, err := strconv.ParseInt(id, 10, 64)
 
-	return nil
+
+	authors, err := model.AuthorOne(c.DB, idNum)
+	if err != nil {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return nil
+	}
+	return JSON(w, http.StatusOK, struct {
+		Authors []model.Author `json:"authors"`
+	}{
+		Authors: authors,
+	})
 }
