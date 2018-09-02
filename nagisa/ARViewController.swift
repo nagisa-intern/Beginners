@@ -60,7 +60,9 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         // 何もタップされていない時
         if hitResults.count == 0 {
-            putImageInScene(comicId: 1)
+            putImageInScene(comicId: comic)
+            comic += 1
+            hereWeAre = -1
             
             print("当たってへんよ")
             return
@@ -95,8 +97,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         result.node!.addChildNode(imageNode)
         
-        comic += 1
-        
         /*
         print("result")
         print(result)
@@ -120,7 +120,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0000.jpeg")
         
-        let turning = Double(move.x/70)
+        let turning = Double(move.x/50)
         let result: AnyObject = hitResults[0]
         
         print("Panってるよ", hereWeAre)
@@ -138,10 +138,10 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 return
             }
             */
-            //if (name == "\(hereWeAre)" || name == "\(hereWeAre-1)"){
+            if (name == "\(hereWeAre)" || name == "\(hereWeAre-1)"){
             
             
-            if name == "\(hereWeAre)"{
+            //if name == "\(hereWeAre)"{
                 print("before", hereWeAre)
                 if (turning <= 1.5 && turning >= -1.5){
                     results.node.eulerAngles = SCNVector3(Double.pi, turning, 0)
@@ -150,7 +150,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 else if turning > 1.5 {
                     results.node.position = SCNVector3(results.node.position.x, results.node.position.y, results.node.position.z - (0.0001*(100-Float(name!)!)))
                     
-                    results.node.eulerAngles = SCNVector3(Double.pi, Double.pi-0.001*(100-Double(name!)!), 0)
+                    results.node.eulerAngles = SCNVector3(Double.pi, Double.pi-0.005*(10-Double(name!)!), 0)
                     hereWeAre += 1
                     print("gone", hereWeAre)
                     
@@ -158,7 +158,10 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                     gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
                 }
                 else if turning < -1.5 {
-                    results.node.eulerAngles = SCNVector3(Double.pi, 0.2, 0)
+                    results.node.position = SCNVector3(results.node.position.x, results.node.position.y, results.node.position.z + (0.0001*(100-Float(name!)!)))
+                    
+                    results.node.eulerAngles = SCNVector3(Double.pi, -(Double.pi-0.005*(10-Double(name!)!)), 0)
+                    
                     hereWeAre -= 1
                     print("backed", hereWeAre)
                     
@@ -228,7 +231,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 let imageNode = SCNNode(geometry: backgroundPlane)
                 imageNode.name = "\(mangaPage)"
                 var translation = matrix_identity_float4x4
-                translation.columns.3.z = -0.4 - 0.005 * Float(i)
+                translation.columns.3.z = -0.4 - 0.00005 * Float(i)
                 
                 imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
                 imageNode.eulerAngles   = SCNVector3(Double.pi, 0, 0)
