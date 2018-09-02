@@ -6,7 +6,8 @@ import (
 "net/http"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	)
+	"github.com/nagisa-intern/Beginners/model"
+)
 
 type Comics struct {
 	DB *sqlx.DB
@@ -37,4 +38,16 @@ func (a *Comics) Get(w http.ResponseWriter, r *http.Request) error {
 	return JSON(w, http.StatusOK, comics)
 
 	return nil
+}
+
+func (a *Comics) GetAll(w http.ResponseWriter, r *http.Request) error {
+	comics, err := model.ComicsAll(a.DB)
+	if err != nil {
+		return err
+	}
+	return JSON(w, http.StatusOK, struct {
+		Comics []model.Comic `json:"articles"`
+	}{
+		Comics: comics,
+	})
 }

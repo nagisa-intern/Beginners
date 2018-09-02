@@ -66,7 +66,7 @@ func (s *Server) Route() *mux.Router {
 
 
 
-
+	router.Handle("/api/comics", handler(comics.GetAll)).Methods("GET")
 	router.Handle("/api/comics/{color}", handler(comics.Get)).Methods("GET")
 
 
