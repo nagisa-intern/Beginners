@@ -39,6 +39,14 @@ func ComicOne(dbx *sqlx.DB, color string) (comics []Comic, err error) {
 	return comics, nil
 }
 
+
+func AuthorOne(dbx *sqlx.DB, id int64) (author []Author, err error) {
+	if err := dbx.Select(&author, `select * from authors where id = ?`, id); err != nil {
+		return nil, err
+	}
+	return author, nil
+}
+
 //func (a *Article) Insert(tx *sqlx.Tx) (sql.Result, error) {
 //	stmt, err := tx.Prepare(`insert into articles (title, user_id) values(?, ?)`)
 //	if err != nil {
