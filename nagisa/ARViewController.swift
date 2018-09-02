@@ -16,6 +16,11 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
 
     var sceneView: ARSCNView!
     
+    var comic: Int = 1
+    var mangaPage: Int = 0
+    
+    var imgArray: [UIImage] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -40,6 +45,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             make.height.equalTo(view.snp.height)
         }
     }
+        
     
     // 画面がタップされた時に呼ばれる関数(tapGestureから)
     @objc func handleTap(_ gestureRecognize: UIGestureRecognizer){
@@ -53,11 +59,9 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let tappedLocation = gestureRecognize.location(in: sceneView)
         let hitResults = sceneView.hitTest(tappedLocation, options: [:])
         
-        var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0000.jpeg")
-        
         // 何もタップされていない時
         if hitResults.count == 0 {
-            putImageInScene(url: url!)
+            putImageInScene(comicId: 1)
             
             print("当たってへんよ")
             return
@@ -65,17 +69,12 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         let result: AnyObject = hitResults[0]
         
-        // 子ノード（文字）があったら消す
-        /*
-        if result.node!.childNodes.count > 0 {
-            result.node!.removeFromParentNode()
-        }
-         */
-        
         result.node!.removeFromParentNode()
         
-        url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0001.jpeg")
-        putImageInScene(url: url!)
+        let mangaPage_s = String(format: "%04d", mangaPage)
+        var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/\(mangaPage_s).jpeg")
+        putImageInScene(comicId: 1)
+        print("mangaPage_s", mangaPage_s)
         
         // ちゃうやん、文字に当たったらにせなあかんやん
         print("hitResults.count")
@@ -101,10 +100,14 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         result.node!.addChildNode(imageNode)
         
+        comic += 1
+        
+        /*
         print("result")
         print(result)
         print("child")
         print(result.node!.childNodes.count)
+         */
     }
     
     
@@ -128,8 +131,20 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             return
         }
         
+        let turning = Double(move.x/70)
+        
         let result: AnyObject = hitResults[0]
-        result.node!.eulerAngles = SCNVector3(Double.pi, Double(move.x/30), 0)
+
+        
+        if (turning <= 2 && turning >= -2){
+            result.node!.eulerAngles = SCNVector3(Double.pi, turning, 0)
+        }
+        else if turning > 2 {
+            result.node!.eulerAngles = SCNVector3(Double.pi, Double.pi, 0)
+        }
+        else if turning < -2 {
+            result.node!.eulerAngles = SCNVector3(Double.pi, 0, 0)
+        }
         
         print(result.node!.parent)
         
@@ -139,47 +154,64 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         //gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
     }
     
-    // 画像を空間に配置する関数
-    func putImageInScene(url: URL) {
+    // 漫画を空間に配置する関数
+    func putImageInScene(comicId: Int) {
         guard let currentFrame = self.sceneView.session.currentFrame else{
             print("currentFrame enable")
             return
         }
-        do {
-            let imageData: Data = try Data(contentsOf: url)
-            let img             = UIImage(data: imageData)
-            let texture         = SKTexture(image: img!)
-            let imageSpriteNode = SKSpriteNode(texture: texture)
-            
-            let skScene = SKScene(size: CGSize(width: 750, height: 526))
-            skScene.addChild(imageSpriteNode)
-            imageSpriteNode.position = CGPoint(x: skScene.size.width/4, y: skScene.size.height/2)
-            imageSpriteNode.size     = CGSize(width: 375, height: 526)
-            let marginSpriteNode = SKSpriteNode(color: Style().invisivle, size: CGSize(width: 375, height: 526))
-            marginSpriteNode.position = CGPoint(x: skScene.size.width*3/4, y: skScene.size.height/2)
-            skScene.addChild(marginSpriteNode)
-            
-            skScene.backgroundColor = Style().invisivle // ページめくる動きのためにジオメトリの横幅を画像の２倍にしてて、画像じゃない方は透過してる
-            
-            let backgroundPlane = SCNPlane(width: 0.375, height: 0.263)
-            //let material        = SCNMaterial()
-            //material.diffuse.contents                       = Style().skyblue
-            //backgroundPlane.materials                       = [material]
-            backgroundPlane.firstMaterial?.diffuse.contents = skScene
-            backgroundPlane.firstMaterial?.isDoubleSided    = true
-            
-            let imageNode = SCNNode(geometry: backgroundPlane)
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.3
-            imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
-            imageNode.eulerAngles   = SCNVector3(Double.pi, 0, 0)
-            
-            self.sceneView.scene.rootNode.addChildNode(imageNode)
-            
-        } catch {
-            print("error in getting imageData")
+        for i in 0..<6 {
+            do{
+                var url: URL
+                if i == 0 {
+                    url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/comic/\(comicId)/thumb.jpeg")!
+                }
+                else{
+                    let mangaPage_s = String(format: "%04d", mangaPage)
+                    url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/\(comicId)/1/\(mangaPage_s).jpeg")!
+                    print(mangaPage)
+                    print(mangaPage_s)
+                    print(url)
+                    mangaPage += 1
+                }
+                
+                let imageData: Data = try Data(contentsOf: url)
+                let img = UIImage(data: imageData)
+                let texture         = SKTexture(image: img!)
+                let imageSpriteNode = SKSpriteNode(texture: texture)
+                
+                let skScene = SKScene(size: CGSize(width: 750, height: 526))
+                skScene.addChild(imageSpriteNode)
+                imageSpriteNode.position = CGPoint(x: skScene.size.width/4, y: skScene.size.height/2)
+                imageSpriteNode.size     = CGSize(width: 375, height: 526)
+                let marginSpriteNode = SKSpriteNode(color: Style().invisivle, size: CGSize(width: 375, height: 526))
+                marginSpriteNode.position = CGPoint(x: skScene.size.width*3/4, y: skScene.size.height/2)
+                skScene.addChild(marginSpriteNode)
+                
+                skScene.backgroundColor = Style().invisivle // ページめくる動きのためにジオメトリの横幅を画像の２倍にしてて、画像じゃない方は透過してる
+                
+                let backgroundPlane = SCNPlane(width: 0.375, height: 0.263)
+                //let material        = SCNMaterial()
+                //material.diffuse.contents                       = Style().skyblue
+                //backgroundPlane.materials                       = [material]
+                backgroundPlane.firstMaterial?.diffuse.contents = skScene
+                backgroundPlane.firstMaterial?.isDoubleSided    = true
+                
+                let imageNode = SCNNode(geometry: backgroundPlane)
+                var translation = matrix_identity_float4x4
+                translation.columns.3.z = -0.3 - 0.005 * Float(i)
+                
+                imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
+                imageNode.eulerAngles   = SCNVector3(Double.pi, 0, 0)
+                
+                self.sceneView.scene.rootNode.addChildNode(imageNode)
+                
+            } catch {
+                print("error in getting imageData")
+            }
         }
     }
+
 
     //(以下デフォルト)-------------------------------------------------------------------------------
 
