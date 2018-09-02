@@ -18,8 +18,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
     
     var comic: Int = 1
     var mangaPage: Int = 0
-    
-    var imgArray: [UIImage] = []
+    var hereWeAre: Int = -1 // 今ユーザがどのページを見ているか
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,13 +67,9 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         }
         
         let result: AnyObject = hitResults[0]
-        
         result.node!.removeFromParentNode()
         
-        let mangaPage_s = String(format: "%04d", mangaPage)
-        var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/\(mangaPage_s).jpeg")
-        putImageInScene(comicId: 1)
-        print("mangaPage_s", mangaPage_s)
+        putImageInScene(comicId: comic)
         
         // ちゃうやん、文字に当たったらにせなあかんやん
         print("hitResults.count")
@@ -94,7 +89,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         let imageNode = SCNNode(geometry: backgroundPlane)
         var translation = matrix_identity_float4x4
-        translation.columns.3.z = 0.000001
+        translation.columns.3.z = 0.0001
         imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
         imageNode.eulerAngles   = SCNVector3(0, 0, 0)
         
@@ -125,33 +120,68 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         
         var url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/1/1/0000.jpeg")
         
-        // PanがNodeに当たってない時
-        if hitResults.count == 0 {
-            print("めくり損ねてる")
-            return
-        }
-        
         let turning = Double(move.x/70)
-        
         let result: AnyObject = hitResults[0]
-
         
-        if (turning <= 2 && turning >= -2){
-            result.node!.eulerAngles = SCNVector3(Double.pi, turning, 0)
-        }
-        else if turning > 2 {
-            result.node!.eulerAngles = SCNVector3(Double.pi, Double.pi, 0)
-        }
-        else if turning < -2 {
-            result.node!.eulerAngles = SCNVector3(Double.pi, 0, 0)
+        print("Panってるよ", hereWeAre)
+        print(move)
+        
+        var node: SCNNode
+        
+        
+        for results in hitResults {
+            let name = results.node.name
+            
+            /* PanがNodeに当たってない時
+            if result.count == 0 {
+                print("めくり損ねてる")
+                return
+            }
+            */
+            //if (name == "\(hereWeAre)" || name == "\(hereWeAre-1)"){
+            
+            
+            if name == "\(hereWeAre)"{
+                print("before", hereWeAre)
+                if (turning <= 1.5 && turning >= -1.5){
+                    results.node.eulerAngles = SCNVector3(Double.pi, turning, 0)
+                }
+                    // ここでめくれたとする
+                else if turning > 1.5 {
+                    results.node.position = SCNVector3(results.node.position.x, results.node.position.y, results.node.position.z - (0.0001*(100-Float(name!)!)))
+                    
+                    results.node.eulerAngles = SCNVector3(Double.pi, Double.pi-0.001*(100-Double(name!)!), 0)
+                    hereWeAre += 1
+                    print("gone", hereWeAre)
+                    
+                    // 蓄積されるから0にしてリセット
+                    gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
+                }
+                else if turning < -1.5 {
+                    results.node.eulerAngles = SCNVector3(Double.pi, 0.2, 0)
+                    hereWeAre -= 1
+                    print("backed", hereWeAre)
+                    
+                    // 蓄積されるから0にしてリセット
+                    gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
+                }
+            }
+            print(results)
         }
         
+        /*
+        print(result.node!.name)
         print(result.node!.parent)
+        print(result.node!.parent?.childNodes)
+        print(result.node!.parent?.parent)
+        print(hereWeAre)
+        */
+
+        //print(result.node!.parent)
         
-        print("move:", move)
+        //print("move:", move)
         
-        // 蓄積されるから0にしてリセット
-        //gestureRecognize.setTranslation(CGPoint(x: 0,y: 0), in:view)
+        
     }
     
     // 漫画を空間に配置する関数
@@ -165,14 +195,11 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 var url: URL
                 if i == 0 {
                     url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/comic/\(comicId)/thumb.jpeg")!
+                    mangaPage = -1
                 }
                 else{
                     let mangaPage_s = String(format: "%04d", mangaPage)
                     url = URL(string: "https://s3-ap-northeast-1.amazonaws.com/nagisa-intern/data/\(comicId)/1/\(mangaPage_s).jpeg")!
-                    print(mangaPage)
-                    print(mangaPage_s)
-                    print(url)
-                    mangaPage += 1
                 }
                 
                 let imageData: Data = try Data(contentsOf: url)
@@ -191,6 +218,7 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 skScene.backgroundColor = Style().invisivle // ページめくる動きのためにジオメトリの横幅を画像の２倍にしてて、画像じゃない方は透過してる
                 
                 let backgroundPlane = SCNPlane(width: 0.375, height: 0.263)
+                //backgroundPlane.name = "mangaPage\(mangaPage)"
                 //let material        = SCNMaterial()
                 //material.diffuse.contents                       = Style().skyblue
                 //backgroundPlane.materials                       = [material]
@@ -198,14 +226,16 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 backgroundPlane.firstMaterial?.isDoubleSided    = true
                 
                 let imageNode = SCNNode(geometry: backgroundPlane)
+                imageNode.name = "\(mangaPage)"
                 var translation = matrix_identity_float4x4
-                translation.columns.3.z = -0.3 - 0.005 * Float(i)
+                translation.columns.3.z = -0.4 - 0.005 * Float(i)
                 
                 imageNode.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
                 imageNode.eulerAngles   = SCNVector3(Double.pi, 0, 0)
                 
                 self.sceneView.scene.rootNode.addChildNode(imageNode)
                 
+                mangaPage += 1
             } catch {
                 print("error in getting imageData")
             }
