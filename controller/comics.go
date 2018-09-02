@@ -27,17 +27,27 @@ func JSON(w http.ResponseWriter, code int, data interface{}) error {
 
 
 func (a *Comics) Get(w http.ResponseWriter, r *http.Request) error {
-
 	comicColor := mux.Vars(r)["color"]
 	w.Header().Set("Location", "api/comics/"+comicColor)
 
-	comics := []Sample{
-		{Color: comicColor, Title: "titleの１だよ", Author: "hogehoge", Summary: "ああああああああああああああああああああああ"},
-		{Color: comicColor, Title: "２", Author: "hogehoge", Summary: "いいいいいいいいいいいいいいいいいい"}}
+	comics, err := model.ComicOne(a.DB, comicColor)
+	if err != nil {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return nil
+	}
+	return JSON(w, http.StatusOK, struct {
+		Comics []model.Comic `json:"comics"`
+	}{
+		Comics: comics,
+	})
 
-	return JSON(w, http.StatusOK, comics)
-
-	return nil
+	//comics := []Sample{
+	//	{Color: comicColor, Title: "titleの１だよ", Author: "hogehoge", Summary: "ああああああああああああああああああああああ"},
+	//	{Color: comicColor, Title: "２", Author: "hogehoge", Summary: "いいいいいいいいいいいいいいいいいい"}}
+	//
+	//return JSON(w, http.StatusOK, comics)
+	//
+	//return nil
 }
 
 func (a *Comics) GetAll(w http.ResponseWriter, r *http.Request) error {

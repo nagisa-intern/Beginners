@@ -8,7 +8,7 @@ type Comic struct {
 	ID           int64  `json:"id"`
 	Title        string `json:"title"`
 	Summary      string `json:"summary`
-	Color		 string	`json:"color"`
+	Color		 string	`db:"thumb_color" json:"color"`
 }
 
 type Author struct {
@@ -31,15 +31,14 @@ func ComicsAll(dbx *sqlx.DB) (comics []Comic, err error) {
 	}
 	return comics, nil
 }
-//
-//func ArticleOne(dbx *sqlx.DB, id int64) (*Article, error) {
-//	var article Article
-//	if err := dbx.Get(&article, `select * from articles where id = ?`, id); err != nil {
-//		return nil, err
-//	}
-//	return &article, nil
-//}
-//
+
+func ComicOne(dbx *sqlx.DB, color string) (comics []Comic, err error) {
+	if err := dbx.Select(&comics, `select * from comics where thumb_color = ?`, color); err != nil {
+		return nil, err
+	}
+	return comics, nil
+}
+
 //func (a *Article) Insert(tx *sqlx.Tx) (sql.Result, error) {
 //	stmt, err := tx.Prepare(`insert into articles (title, user_id) values(?, ?)`)
 //	if err != nil {
